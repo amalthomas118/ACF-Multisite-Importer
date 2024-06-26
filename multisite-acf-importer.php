@@ -210,6 +210,11 @@ class MSAI_ACF_Importer {
 			// Display success or error message after all sites are processed
 			if ( $import_success ) {
 				$this->display_success( __( 'ACF fields imported successfully.', 'multisite-acf-importer' ) );
+
+				//Deletes the temp file stored in the uploads folder
+				if (file_exists($target_path)) {
+					unlink($target_path);
+				}
 			}
 		}
 	}
