@@ -1,0 +1,49 @@
+/* ... (Your existing styles) ... */
+
+#msai-importer .wrap {
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.msai-settings-container {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #f8f8f8;
+    margin-bottom: 20px;
+}
+
+#msai-importer h2 {
+    margin-bottom: 20px;
+}
+
+#msai-importer h2 span {
+    vertical-align: middle;
+    margin-right: 5px;
+    color: #007cba;
+}
+
+.msai-form-group {
+    margin-bottom: 15px;
+}
+
+.msai-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.msai-checkbox-group {
+    margin-top: 5px;
+}
+
+.msai-checkbox-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#msai-importer .submit {
+    margin-top: 20px;
+}
