@@ -7,8 +7,7 @@
  Requires at least: 5.0
  Tested up to: 6.2
  Requires PHP: 7.2
- Author: Phases
- Author URI: https://www.phases.io
+ Author: Amal Thomas
  License: GPL-2.0+
  Text Domain: multisite-acf-importer
  Domain Path: /languages
