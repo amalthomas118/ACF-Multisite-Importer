@@ -1,192 +1,164 @@
 <?php
-//import the plugin settings class
-include MSAI_PLUGIN_DIR .'core/class-settings.php';
 
-// Define the main plugin class
-class MsaImporter extends MsaImporterSettings
-{
-	public function __construct()
-	{
-		// Register actions
-		$this->register_actions();
-	}
+namespace Multisite_ACF_Importer\Core;
 
-	private function register_actions()
-	{
-		add_action('plugins_loaded', array($this, 'load_textdomain'));
-		add_action('network_admin_notices', array($this, 'import_fields'));
-		add_action('admin_notices', array($this, 'import_fields'));
-		add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
-		
-		if ( IS_MULTI_SITE ) {
-            add_action( 'network_admin_menu', array( $this, 'add_network_settings' ) );
-        } else {
-            add_action( 'admin_menu', array( $this, 'add_single_site_settings' ) );
-        }
-	}
-
-	public function load_textdomain()
-	{
-		load_plugin_textdomain('multisite-acf-importer', false, dirname(plugin_basename(__FILE__)) . '/languages');
-	}
-
-	//Get the sites, Checks if it is a multisite or a single site
-	private function get_sites_to_import()
-	{
-		$sites = isset($_POST['sites']) ? $_POST['sites'] : array();
-
-		if (IS_MULTI_SITE) {
-			if (empty($sites)) {
-				$this->display_error(__('Please select at least one site.', 'multisite-acf-importer'));
-				return array();
-			}
-		} else {
-			$sites[] = get_current_blog_id();
-		}
-
-		return $sites;
-	}
-
-	// Import the fields to a temparory file before the start of the process 
-	public function import_fields()
-	{
-		if (isset($_POST['msai_import_fields']) && wp_verify_nonce($_POST['msai_nonce'], 'msai_import_fields')) {
-			$sites = $this->get_sites_to_import();
-			$file = $_FILES['acf_json_file'];
-
-			if ($this->validate_file_upload($file)) {
-				// Move uploaded file to temporary location
-				$upload_dir = wp_upload_dir();
-				$target_path = $upload_dir['path'] . '/' . basename($file['name']);
-				if (!move_uploaded_file($file['tmp_name'], $target_path)) {
-					$this->display_error(__('Error moving uploaded file.', 'multisite-acf-importer'));
-					return;
-				}
-
-				// Process import on selected sites
-				$import_success = $this->process_import($sites, $target_path);
-
-				// Delete temporary file
-				if (file_exists($target_path)) {
-					unlink($target_path);
-				}
-
-				// Display success or error message
-				if ($import_success) {
-					$this->display_success(__('ACF fields imported successfully.', 'multisite-acf-importer'));
-				}
-			}
-		}
-	}
-
-	//Function to validate if its a json file
-	private function validate_file_upload($file)
-	{
-		if (empty($file['name']) || !in_array($file['type'], array('application/json', 'text/json'))) {
-			$this->display_error(__('Please upload a valid JSON file.', 'multisite-acf-importer'));
-			return false;
-		}
-		return true;
-	}
-
-	//Initialize the import process
-	private function process_import($sites, $target_path)
-	{
-		$import_success = true;
-		foreach ($sites as $site_id) {
-			if (IS_MULTI_SITE) {
-				switch_to_blog($site_id);
-			}
-
-			$json = file_get_contents($target_path);
-			$result = $this->import_acf_fields($json);
-
-			if ($result !== true) {
-				$import_success = false;
-				$this->display_error(__('Error importing ACF fields:', 'multisite-acf-importer') . ' ' . $result);
-			}
-
-			if (IS_MULTI_SITE) {
-				restore_current_blog();
-			}
-		}
-		return $import_success;
-	}
-
-	//function of the import process
-	public function import_acf_fields($json)
-	{
-		// Decode JSON data
-		$data = json_decode($json, true);
-
-		// Validate JSON data
-		if (!is_array($data) || empty($data)) {
-			return __('Invalid JSON data.', 'multisite-acf-importer');
-		}
-
-		// Loop through field groups and import
-		foreach ($data as $field_group) {
-			// Get existing field group by key
-			$existing_field_group = acf_get_field_group($field_group['key']);
-
-			// If field group exists, delete it before importing
-			if ($existing_field_group) {
-				acf_delete_field_group($existing_field_group['ID']);
-			}
-
-			// Import field group (overwrites if it exists)
-			$imported_id = acf_import_field_group($field_group);
-
-			// Check for errors
-			if (is_wp_error($imported_id)) {
-				return $imported_id->get_error_message();
-			}
-		}
-
-		return true;
-	}
-
-	// Display error message
-	public function display_error($message)
-	{
-		?>
-		<div id="msai-errors" class="notice notice-error" style="display: none;">
-			<p></p>
-		</div>
-		<script>
-			jQuery('#msai-errors p').html('<?php echo esc_html($message); ?>');
-			jQuery('#msai-errors').addClass('is-dismissible').show(); // Add is-dismissible class
-			jQuery('#msai-errors .notice-dismiss').click(function () {
-				jQuery(this).parent().hide();
-			});
-		</script>
-		<?php
-	}
-
-	// Display success message
-	public function display_success($message)
-	{
-		?>
-		<div id="msai-success" class="notice notice-success" style="display: none;">
-			<p></p>
-		</div>
-		<script>
-			jQuery('#msai-success p').html('<?php echo esc_html($message); ?>');
-			jQuery('#msai-success').addClass('is-dismissible').show(); // Add is-dismissible class
-			jQuery('#msai-success .notice-dismiss').click(function () {
-				jQuery(this).parent().hide();
-			});
-		</script>
-		<?php
-	}
-
-	//enqueue the scripts
-	public function enqueue_scripts()
-	{
-		$css_filetime = filemtime(MSAI_PLUGIN_DIR . 'css/msai-style.css');
-		$js_filetime = filemtime(MSAI_PLUGIN_DIR . 'js/msai-scripts.js');
-
-		wp_enqueue_style('msai-styles', MSAI_PLUGIN_URL . 'css/msai-style.css', array(), $css_filetime);
-		wp_enqueue_script('msai-scripts', MSAI_PLUGIN_URL . 'js/msai-scripts.js', array('jquery'), $js_filetime, true);
-	}
+// Prevent direct access to the file
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly.
 }
+
+class Importer
+{
+    public function __construct()
+    {
+        // Hook to handle the form submission for importing ACF fields
+        add_action('admin_init', [$this, 'handle_import']);
+        // Hook to display admin notices for import results
+        add_action('network_admin_notices', [$this, 'display_notices']);
+    }
+
+    // Handle the ACF fields import process
+    public function handle_import()
+    {
+        if (isset($_POST['msai_import_fields'])) {
+
+            // Verify that the user is a network administrator
+            if (!current_user_can('manage_network_options')) {
+                wp_die(__('You do not have permission to access this page. Only network administrator can access this.', 'multisite-acf-importer'));
+            }
+
+            // Verify nonce for security
+            if (!isset($_POST['msai_nonce']) || !wp_verify_nonce($_POST['msai_nonce'], 'msai_import_fields')) {
+                wp_die(__('Nonce verification failed', 'multisite-acf-importer'));
+            }
+
+
+            $sites = $this->get_sites_to_import();
+            $file = $_FILES['acf_json_file'];
+
+            // Validate the uploaded JSON file
+            if ($this->validate_file_upload($file)) {
+                $upload_dir = wp_upload_dir();
+                $target_path = $upload_dir['path'] . '/' . sanitize_file_name(basename($file['name']));
+                if (!move_uploaded_file($file['tmp_name'], $target_path)) {
+                    $this->add_admin_notice('error', __('Error moving uploaded file.', 'multisite-acf-importer'));
+                    return;
+                }
+
+                // Process the import for the selected sites
+                $import_success = $this->process_import($sites, $target_path);
+
+                // Clean up the uploaded file
+                if (file_exists($target_path)) {
+                    unlink($target_path);
+                }
+
+                // Add success notice if import was successful
+                if ($import_success) {
+                    $this->add_admin_notice('success', __('ACF fields imported successfully.', 'multisite-acf-importer'));
+                }
+            }
+        }
+    }
+
+    // Get the list of sites selected for import
+    private function get_sites_to_import()
+    {
+        $sites = isset($_POST['sites']) ? array_map('sanitize_text_field', $_POST['sites']) : array();
+
+        // Check if at least one site is selected
+        if (empty($sites)) {
+            $this->add_admin_notice('error', __('Please select at least one site.', 'multisite-acf-importer'));
+            return array();
+        }
+
+        return $sites;
+    }
+
+    // Validate the uploaded JSON file
+    private function validate_file_upload($file)
+    {
+        if (empty($file['name']) || !in_array($file['type'], array('application/json', 'text/json'))) {
+            $this->add_admin_notice('error', __('Please upload a valid JSON file.', 'multisite-acf-importer'));
+            return false;
+        }
+        return true;
+    }
+
+    // Process the ACF fields import for the selected sites
+    private function process_import($sites, $target_path)
+    {
+        $import_success = true;
+        foreach ($sites as $site_id) {
+            switch_to_blog(intval($site_id));
+
+            $json = file_get_contents($target_path);
+            $result = $this->import_acf_fields($json);
+
+            // Check if there was an error during import
+            if ($result !== true) {
+                $import_success = false;
+                $this->add_admin_notice('error', __('Error importing ACF fields:', 'multisite-acf-importer') . ' ' . esc_html($result));
+            }
+
+            restore_current_blog();
+        }
+        return $import_success;
+    }
+
+    // Import the ACF fields from the JSON data
+    private function import_acf_fields($json)
+    {
+        $data = json_decode($json, true);
+
+        if (!is_array($data) || empty($data)) {
+            return __('Invalid JSON data.', 'multisite-acf-importer');
+        }
+
+        foreach ($data as $field_group) {
+            if (class_exists('ACF')) {
+                // Check if the field group already exists and delete it if it does
+                $existing_field_group = acf_get_field_group(sanitize_text_field($field_group['key']));
+                if ($existing_field_group) {
+                    acf_delete_field_group(intval($existing_field_group['ID']));
+                }
+
+                // Import the new field group
+                $imported_id = acf_import_field_group($field_group);
+                if (is_wp_error($imported_id)) {
+                    return $imported_id->get_error_message();
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Add an admin notice to display messages to the user
+    private function add_admin_notice($type, $message)
+    {
+        $notices = get_option('msai_admin_notices', array());
+        $notices[] = array('type' => $type, 'message' => $message);
+        update_option('msai_admin_notices', $notices);
+    }
+
+    // Display admin notices for import results
+    public function display_notices()
+    {
+        $notices = get_option('msai_admin_notices', array());
+        foreach ($notices as $notice) {
+            printf(
+                '<div id="msai-errors" class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>',
+                esc_attr($notice['type']),
+                esc_html($notice['message'])
+            );
+        }
+        delete_option('msai_admin_notices');
+    }
+}
+
+// Instantiate the Importer class
+new Importer();
