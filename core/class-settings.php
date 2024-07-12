@@ -53,7 +53,7 @@ class Settings
                         <label for="select-all"><?php esc_html_e('Select Sites', 'multisite-acf-importer'); ?></label>
                         <div class="msai-checkbox-group">
                             <?php
-                            $sites = get_sites(array('deleted' => 0, 'archived' => 0, 'spam' => 0, 'public' => 1));
+                            $sites = get_sites(array('deleted' => 0, 'archived' => 0, 'spam' => 0));
                             foreach ($sites as $site) :
                             ?>
                                 <label for="site-<?php echo esc_attr($site->blog_id); ?>">
