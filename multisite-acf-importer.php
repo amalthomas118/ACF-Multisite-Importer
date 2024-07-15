@@ -8,7 +8,7 @@
  Tested up to: 6.2
  Requires PHP: 7.2
  Author: Amal Thomas
- Organization : Phases
+ Organisation : Phases
  Author URI: https://www.phases.io
  License: GPL-2.0+
  Text Domain: multisite-acf-importer

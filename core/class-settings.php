@@ -21,9 +21,9 @@ class Settings
     // Enqueue the necessary styles and scripts for the admin page    public function enqueue_scripts()
     public function enqueue_scripts()
     {
-        wp_enqueue_style('msai-styles', MSAI_PLUGIN_URL . 'css/msai-style.css', array(), MSAI_PLUGIN_VERSION);
+        wp_enqueue_style('msai-styles', MSAI_PLUGIN_URL . 'assets/css/msai-style.css', array(), MSAI_PLUGIN_VERSION);
 
-        wp_enqueue_script('msai-scripts', MSAI_PLUGIN_URL . 'js/msai-scripts.js', array('jquery'), MSAI_PLUGIN_VERSION, true);
+        wp_enqueue_script('msai-scripts', MSAI_PLUGIN_URL . 'assets/js/msai-scripts.js', array('jquery'), MSAI_PLUGIN_VERSION, true);
     }
 
     // Add the network admin menu item for the plugin

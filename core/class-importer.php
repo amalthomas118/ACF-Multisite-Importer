@@ -54,7 +54,7 @@ class Importer
                 }
 
                 // Add success notice if import was successful
-                if ($import_success) {
+                if ($import_success && !empty($sites)) {
                     $this->add_admin_notice('success', __('ACF fields imported successfully.', 'multisite-acf-importer'));
                 }
             }
