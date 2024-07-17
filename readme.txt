@@ -1,5 +1,5 @@
 === Multisite ACF Importer ===
-Contributors: Phases
+Contributors: Amal Thomas
 Tags: multisite, acf, importer, custom fields
 Requires at least: 5.0
 Tested up to: 6.2
