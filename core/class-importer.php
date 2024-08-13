@@ -24,12 +24,12 @@ class Importer
 
             // Verify that the user is a network administrator
             if (!current_user_can('manage_network_options')) {
-                wp_die(__('You do not have permission to access this page. Only network administrator can access this.', 'multisite-acf-importer'));
+                wp_die(esc_html_e('You do not have permission to access this page. Only network administrator can access this.', 'multisite-acf-importer'));
             }
 
             // Verify nonce for security
             if (!isset($_POST['msai_nonce']) || !wp_verify_nonce($_POST['msai_nonce'], 'msai_import_fields')) {
-                wp_die(__('Nonce verification failed', 'multisite-acf-importer'));
+                wp_die(esc_html_e('Nonce verification failed', 'multisite-acf-importer'));
             }
 
 
@@ -41,7 +41,7 @@ class Importer
                 $upload_dir = wp_upload_dir();
                 $target_path = $upload_dir['path'] . '/' . sanitize_file_name(basename($file['name']));
                 if (!move_uploaded_file($file['tmp_name'], $target_path)) {
-                    $this->add_admin_notice('error', __('Error moving uploaded file.', 'multisite-acf-importer'));
+                    $this->add_admin_notice('error', esc_html_e('Error moving uploaded file.', 'multisite-acf-importer'));
                     return;
                 }
 
@@ -50,12 +50,12 @@ class Importer
 
                 // Clean up the uploaded file
                 if (file_exists($target_path)) {
-                    unlink($target_path);
+                    wp_delete_file($target_path);
                 }
 
                 // Add success notice if import was successful
                 if ($import_success && !empty($sites)) {
-                    $this->add_admin_notice('success', __('ACF fields imported successfully.', 'multisite-acf-importer'));
+                    $this->add_admin_notice('success', esc_html_e('ACF fields imported successfully.', 'multisite-acf-importer'));
                 }
             }
         }
@@ -68,7 +68,7 @@ class Importer
 
         // Check if at least one site is selected
         if (empty($sites)) {
-            $this->add_admin_notice('error', __('Please select at least one site.', 'multisite-acf-importer'));
+            $this->add_admin_notice('error', esc_html_e('Please select at least one site.', 'multisite-acf-importer'));
             return array();
         }
 
@@ -79,7 +79,7 @@ class Importer
     private function validate_file_upload($file)
     {
         if (empty($file['name']) || !in_array($file['type'], array('application/json', 'text/json'))) {
-            $this->add_admin_notice('error', __('Please upload a valid JSON file.', 'multisite-acf-importer'));
+            $this->add_admin_notice('error', esc_html_e('Please upload a valid JSON file.', 'multisite-acf-importer'));
             return false;
         }
         return true;
@@ -92,13 +92,13 @@ class Importer
         foreach ($sites as $site_id) {
             switch_to_blog(intval($site_id));
 
-            $json = file_get_contents($target_path);
+            $json = wp_remote_get($target_path);
             $result = $this->import_acf_fields($json);
 
             // Check if there was an error during import
             if ($result !== true) {
                 $import_success = false;
-                $this->add_admin_notice('error', __('Error importing ACF fields:', 'multisite-acf-importer') . ' ' . esc_html($result));
+                $this->add_admin_notice('error', esc_html_e('Error importing ACF fields:', 'multisite-acf-importer') . ' ' . esc_html($result));
             }
 
             restore_current_blog();

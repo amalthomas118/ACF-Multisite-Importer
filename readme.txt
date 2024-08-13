@@ -1,8 +1,9 @@
 === Multisite ACF Importer ===
 Contributors: Amal Thomas
+Organisation : Phases
 Tags: multisite, acf, importer, custom fields
 Requires at least: 5.0
-Tested up to: 6.2
+Tested up to: 6.6
 Requires PHP: 7.2
 Stable tag: 1.0.0
 License: GPLv3 or later
@@ -11,6 +12,10 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 == Description ==
 
 **Multisite ACF Importer** is a powerful plugin designed to streamline the process of importing Advanced Custom Fields (ACF) settings across a WordPress multisite network. This plugin allows you to easily import ACF field groups into multiple sites within your network, saving you time and ensuring consistency across all sites.
+
+== Short Description ==
+
+**The MSAI Plugin (Multi Site ACF Importer) plugin is a plugin which can be used to import ACF fields to multiple sites at once, making it easier than manually uploading the JSON file to multiple websites.
 
 ### Features
 - Import ACF field groups across a multisite network
@@ -38,11 +43,6 @@ This plugin is designed specifically for multisite networks. For single site ACF
 = What file formats does this plugin support for importing ACF settings? =
 
 The plugin supports ACF JSON export files.
-
-== Screenshots ==
-
-1. **Main Interface** - The main interface for selecting and importing ACF field groups.
-2. **Import Process** - The process of importing an ACF JSON file.
 
 == Changelog ==
 

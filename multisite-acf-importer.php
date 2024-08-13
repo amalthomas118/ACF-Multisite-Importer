@@ -5,16 +5,18 @@
  Description: A plugin to import ACF fields across multisite.
  Version: 1.0.0
  Requires at least: 5.0
- Tested up to: 6.2
+ Tested up to: 6.6
  Requires PHP: 7.2
  Author: Amal Thomas
  Organisation : Phases
  Author URI: https://www.phases.io
- License: GPL-2.0+
+ License: GPL-3.0+
  Text Domain: multisite-acf-importer
  Domain Path: /languages
  
 ------------------------------------------------------------------------
+Copyright 2009-2024 Phases, Inc.
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
